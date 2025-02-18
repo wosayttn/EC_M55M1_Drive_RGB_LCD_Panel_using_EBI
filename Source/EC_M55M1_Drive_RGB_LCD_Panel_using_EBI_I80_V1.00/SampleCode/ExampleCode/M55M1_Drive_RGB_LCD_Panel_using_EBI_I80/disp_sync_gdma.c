@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * @copyright (C) 2025 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
- 
+
 #include "dma350_lib.h"
 #include "dma350_ch_drv.h"
 #include "disp.h"
@@ -23,13 +23,19 @@ typedef struct
 
 typedef struct
 {
-    S_CMDBUF m_dscH[evHStageCNT];
+    S_CMDBUF m_dscH[evHStageCNT]; // Array of H stage descriptors
 } S_DSC_HLINE;
 
 typedef struct
 {
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VACT)
+    S_CMDBUF       m_dscDummy;
+    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
+#else
 #define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT+CONFIG_TIMING_VFP)
     S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
+#endif
 } S_DSC_LCD;
 
 /*---------------------------------------------------------------------------*/
@@ -52,22 +58,35 @@ static DispBlankCb s_DispBlankCb = NULL;
 
 static const uint32_t s_au32HTiming[evHStageCNT] =
 {
+#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
+#define DEF_HACT_ALL     (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT)
+
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+    DEF_HACT_INDEX,
+    CONFIG_TIMING_HACT
+#else
     CONFIG_TIMING_HFP,
     CONFIG_TIMING_HPW,
     CONFIG_TIMING_HBP,
-#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
     CONFIG_TIMING_HACT
+#endif
 };
 
 static const uint32_t s_au32VTiming[evVStageCNT] =
 {
+#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
+#define DEF_VACT_ALL     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT)
+
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+    DEF_VACT_INDEX,
+    CONFIG_TIMING_VACT
+#else
     CONFIG_TIMING_VFP,
     CONFIG_TIMING_VPW,
     CONFIG_TIMING_VBP,
-#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
     CONFIG_TIMING_VACT
+#endif
 };
-
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */
 /*---------------------------------------------------------------------------*/
@@ -90,6 +109,19 @@ static E_VSTAGE get_current_vstage(int i32LineIdx)
 }
 
 // Function to initialize the GDMA descriptors for display synchronization
+static void disp_cmdlink_config(struct dma350_cmdlink_gencfg_t *cmdlink_cfg, uint32_t u32AddrSrc, uint32_t u32AddrDst, uint32_t u32XferCount, uint16_t u16AddrSrcInc, uint16_t u16AddrDstInc)
+{
+    dma350_cmdlink_init(cmdlink_cfg);
+    dma350_cmdlink_set_regclear(cmdlink_cfg);
+    dma350_cmdlink_set_src_des(cmdlink_cfg, (const void *)u32AddrSrc, (void *)u32AddrDst, u32XferCount, u32XferCount);
+    dma350_cmdlink_set_xsize16(cmdlink_cfg, (uint16_t)u32XferCount, (uint16_t)u32XferCount);
+    dma350_cmdlink_set_transize(cmdlink_cfg, DMA350_CH_TRANSIZE_16BITS);
+    dma350_cmdlink_set_xtype(cmdlink_cfg, DMA350_CH_XTYPE_CONTINUE);
+    dma350_cmdlink_set_ytype(cmdlink_cfg, DMA350_CH_YTYPE_DISABLE);
+    dma350_cmdlink_set_xaddrinc(cmdlink_cfg, u16AddrSrcInc, u16AddrDstInc);
+    dma350_cmdlink_enable_linkaddr(cmdlink_cfg);
+}
+
 static void disp_gdma_dsc_init(void)
 {
 
@@ -98,6 +130,65 @@ static void disp_gdma_dsc_init(void)
     S_CMDBUF *next = s_head; // first descriptor.
     struct dma350_cmdlink_gencfg_t cmdlink_cfg;
 
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+    /* DE only */
+    uint32_t u32AddrSrc;
+    uint32_t u32AddrDst;
+    uint32_t u32XferCount;
+    uint16_t u16AddrSrcInc;
+    uint16_t u16AddrDstInc;
+
+    /* (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP) * (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT) */
+    u32AddrSrc = (uint32_t)&s_u32DummyData;
+    u32AddrDst = CONFIG_DISP_EBI_ADDR;
+    u32XferCount = (CONFIG_TIMING_VFP + CONFIG_TIMING_VPW + CONFIG_TIMING_VBP) * (CONFIG_TIMING_HFP + CONFIG_TIMING_HPW + CONFIG_TIMING_HBP + CONFIG_TIMING_HACT);
+    u16AddrSrcInc = 0;
+    u16AddrDstInc = 0;
+    disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
+    dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
+    dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
+    dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
+    next++;
+
+    for (i = 0; i < CONFIG_TIMING_VACT; i++)
+    {
+        /* Front descriptor */
+        u32AddrSrc = (uint32_t)&s_u32DummyData;
+        u32AddrDst = CONFIG_DISP_EBI_ADDR;
+        u32XferCount = CONFIG_TIMING_HFP + CONFIG_TIMING_HPW + CONFIG_TIMING_HBP;
+        u16AddrSrcInc = 0;
+        u16AddrDstInc = 0;
+
+        disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
+        dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
+        dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
+        dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
+        next++;
+
+        /* Backend descriptor */
+        u32AddrSrc = (uint32_t)&pu16Buf[i * CONFIG_TIMING_HACT];
+        u32AddrDst = CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE;
+        u32XferCount = CONFIG_TIMING_HACT;
+        u16AddrSrcInc = 1;
+        u16AddrDstInc = 0;
+
+        disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
+        if (i == (CONFIG_TIMING_VACT - 1))
+        {
+            dma350_cmdlink_enable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
+            dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)s_head);
+        }
+        else
+        {
+            dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
+            dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
+        }
+        dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
+        next++;
+
+    } // for(i = 0; i < CONFIG_TIMING_VACT; i++)
+
+#else
     for (i = 0; i < DEF_TOTAL_VLINES; i++)
     {
         E_HSTAGE evH;
@@ -153,17 +244,7 @@ static void disp_gdma_dsc_init(void)
                 break;
             }
 
-            dma350_cmdlink_init(&cmdlink_cfg);
-            dma350_cmdlink_set_regclear(&cmdlink_cfg);
-            dma350_cmdlink_set_src_des(&cmdlink_cfg, (const void *)u32AddrSrc, (void *)u32AddrDst, u32XferCount, u32XferCount);
-            dma350_cmdlink_set_xsize16(&cmdlink_cfg, (uint16_t)u32XferCount, (uint16_t)u32XferCount);
-            dma350_cmdlink_set_transize(&cmdlink_cfg, DMA350_CH_TRANSIZE_16BITS);
-            dma350_cmdlink_set_xtype(&cmdlink_cfg, DMA350_CH_XTYPE_CONTINUE);
-            dma350_cmdlink_set_ytype(&cmdlink_cfg, DMA350_CH_YTYPE_DISABLE);
-            dma350_cmdlink_set_xaddrinc(&cmdlink_cfg, u16AddrSrcInc, u16AddrDstInc);
-
-            dma350_cmdlink_enable_linkaddr(&cmdlink_cfg);
-
+            disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
             if (next == s_end)
             {
                 dma350_cmdlink_enable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
@@ -174,7 +255,6 @@ static void disp_gdma_dsc_init(void)
                 dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
                 dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
             }
-
             dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
 
             next++;
@@ -182,6 +262,8 @@ static void disp_gdma_dsc_init(void)
         } // for (evH = 0; evH < evHStageCNT; evH++)
 
     } // for (i = 0; i < DEF_TOTAL_VLINES; i++)
+#endif
+
 }
 
 // Array of strings representing the GDMA descriptor item names
@@ -324,10 +406,23 @@ NVT_ITCM void GDMACH1_IRQHandler(void)
 
     if (status.b.STAT_DONE)
     {
-        uint32_t u32SrcBufAddrIdx = gdma_dsc_find_srcaddr_index(&s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT]) + 1;
-
         GDMA_CH_DEV_S[1]->cfg.ch_base->CH_STATUS = DMA350_CH_STAT_DONE;
 
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+        uint32_t u32SrcBufAddrIdx = gdma_dsc_find_srcaddr_index(&s_sDscLCD.m_dscV[0].m_dscH[evHStageHACT]) + 1;
+        if ((s_sDscLCD.m_dscV[0].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] != (uint32_t)s_pu16BufAddr))
+        {
+            int i;
+
+            /* Switch new VRAM buffer address. */
+            for (i = 0; i < s_au32VTiming[evVStageVACT]; i++)
+            {
+                /* Update every lines. */
+                s_sDscLCD.m_dscV[i].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
+            }
+        }
+#else
+        uint32_t u32SrcBufAddrIdx = gdma_dsc_find_srcaddr_index(&s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT]) + 1;
         if ((s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] != (uint32_t)s_pu16BufAddr))
         {
             int i;
@@ -339,7 +434,7 @@ NVT_ITCM void GDMACH1_IRQHandler(void)
                 s_sDscLCD.m_dscV[DEF_VACT_INDEX + i].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
             }
         }
-
+#endif
         if (s_DispBlankCb)
             s_DispBlankCb((void *)s_pu16BufAddr);
     }
@@ -404,7 +499,7 @@ static int disp_sync_gdma_init(void)
     enum dma350_lib_error_t lib_err;
 
     /* Set the VRAM address by default. */
-	  s_pu16BufAddr = (uint16_t*)g_au8FrameBuf;
+    s_pu16BufAddr = (uint16_t *)g_au8FrameBuf;
 
     /* Enable GDMA module clock and un-mask interrupt. */
     gdma_init();
@@ -437,9 +532,9 @@ void disp_set_vrambufaddr(void *pvBufAddr)
 }
 
 // Function to get the VRAM buffer address
-void* disp_get_vrambufaddr(void)
+void *disp_get_vrambufaddr(void)
 {
-    return (void*)s_pu16BufAddr;
+    return (void *)s_pu16BufAddr;
 }
 
 // Function to set the blank event callback function

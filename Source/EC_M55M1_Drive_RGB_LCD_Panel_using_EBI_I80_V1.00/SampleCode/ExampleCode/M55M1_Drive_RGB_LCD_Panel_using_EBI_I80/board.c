@@ -1,11 +1,11 @@
 /**************************************************************************//**
  * @file     board.c
- * @brief    Module clocks initialization and function pin setting. 
+ * @brief    Module clocks initialization and function pin setting.
  *
  * SPDX-License-Identifier: Apache-2.0
  * @copyright (C) 2025 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
- 
+
 #include "NuMicro.h"
 #include "component.h"
 #include "disp.h"

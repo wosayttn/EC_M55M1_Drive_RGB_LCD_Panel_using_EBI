@@ -7,8 +7,8 @@
  * @copyright (C) 2025 Nuvoton Technology Corp. All rights reserved.
  ******************************************************************************/
 
-#ifndef __BOARD_H__
-#define __BOARD_H__
+#ifndef __COMPONENT_H__
+#define __COMPONENT_H__
 
 /**
  * component_export
@@ -56,4 +56,4 @@ typedef struct component_export *component_export_t;
 extern const int CompInitTab$$Base;
 extern const int CompInitTab$$Limit;
 
-#endif  // __BOARD_H__
+#endif  // __COMPONENT_H__

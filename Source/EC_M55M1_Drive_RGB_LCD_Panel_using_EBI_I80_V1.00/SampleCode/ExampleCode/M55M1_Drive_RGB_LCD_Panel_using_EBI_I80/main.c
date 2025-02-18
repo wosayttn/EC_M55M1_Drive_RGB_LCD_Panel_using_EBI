@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * @copyright (C) 2025 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
- 
+
 #include "NuMicro.h"
 #include "component.h"
 
@@ -16,7 +16,7 @@
   * @brief Initializes major clocks and UART-console function.
   * @param[in]  None
   * @return     None
-	* @details    Prevent using C runtime library functions (e.g. printf) or global variables in this function.
+  * @details    Prevent using C runtime library functions (e.g. printf) or global variables in this function.
   */
 void Reset_Handler_PreInit(void)
 {

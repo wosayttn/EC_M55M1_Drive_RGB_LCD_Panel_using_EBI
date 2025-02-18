@@ -23,8 +23,14 @@ typedef struct
 // Structure representing the V stage descriptor
 typedef struct
 {
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VACT)
+    DSCT_T         m_dscDummy;
+    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
+#else
 #define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT+CONFIG_TIMING_VFP)
-    S_DSC_HLINE m_dscV[DEF_TOTAL_VLINES]; // Array of V stage descriptors
+    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
+#endif
 } S_DSC_LCD;
 
 /*---------------------------------------------------------------------------*/
@@ -46,21 +52,34 @@ static DispBlankCb s_DispBlankCb = NULL;
 // Array of H timing values
 static const uint32_t s_au32HTiming[evHStageCNT] =
 {
+#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+    DEF_HACT_INDEX,
+    CONFIG_TIMING_HACT
+#else
     CONFIG_TIMING_HFP,
     CONFIG_TIMING_HPW,
     CONFIG_TIMING_HBP,
-#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
     CONFIG_TIMING_HACT
+#endif
+#define DEF_HACT_ALL     (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT)
 };
 
 // Array of V timing values
 static const uint32_t s_au32VTiming[evVStageCNT] =
 {
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+#define DEF_VACT_INDEX   (0)
+    (CONFIG_TIMING_VFP + CONFIG_TIMING_VPW + CONFIG_TIMING_VBP),
+    CONFIG_TIMING_VACT
+#else
+#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
     CONFIG_TIMING_VFP,
     CONFIG_TIMING_VPW,
     CONFIG_TIMING_VBP,
-#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
     CONFIG_TIMING_VACT
+#endif
+#define DEF_VACT_ALL     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT)
 };
 
 static int s_i32Channel = -1;
@@ -110,6 +129,49 @@ static void disp_pdma_dsc_init(void)
     int i;
     uint16_t *pu16Buf = (uint16_t *)s_pu16BufAddr;
     nu_pdma_desc_t next = s_head; // first descriptor.
+
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+
+    /* DE only */
+
+    /* (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP) * (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT) */
+    nu_pdma_m2m_desc_setup(next,
+                           16,
+                           (uint32_t)&s_u32DummyData,
+                           CONFIG_DISP_EBI_ADDR,
+                           (CONFIG_TIMING_VFP + CONFIG_TIMING_VPW + CONFIG_TIMING_VBP) * (CONFIG_TIMING_HFP + CONFIG_TIMING_HPW + CONFIG_TIMING_HBP + CONFIG_TIMING_HACT),
+                           eMemCtl_SrcFix_DstFix,
+                           next + 1,
+                           1);
+    next++;
+
+    for (i = 0; i < CONFIG_TIMING_VACT; i++)
+    {
+        /* Front descriptor */
+        nu_pdma_m2m_desc_setup(next,
+                               16,
+                               (uint32_t)&s_u32DummyData,
+                               CONFIG_DISP_EBI_ADDR,
+                               (CONFIG_TIMING_HFP + CONFIG_TIMING_HPW + CONFIG_TIMING_HBP),
+                               eMemCtl_SrcFix_DstFix,
+                               next + 1,
+                               1);
+        next++;
+
+        /* Backend descriptor */
+        nu_pdma_m2m_desc_setup(next,
+                               16,
+                               (uint32_t)&pu16Buf[i * CONFIG_TIMING_HACT],
+                               CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE,
+                               CONFIG_TIMING_HACT,
+                               eMemCtl_SrcInc_DstFix,
+                               next + 1,
+                               1);
+        next++;
+
+    } // for(i = 0; i < CONFIG_TIMING_VACT; i++)
+
+#else
 
     for (i = 0; i < DEF_TOTAL_VLINES; i++)
     {
@@ -179,6 +241,7 @@ static void disp_pdma_dsc_init(void)
         } // for (evH = 0; evH < evHStageCNT; evH++)
 
     } // for (i = 0; i < DEF_TOTAL_VLINES; i++)
+#endif
 
     /* Update NEXT of last descriptor to link head. */
     s_end->NEXT = (uint32_t)s_head;
@@ -190,23 +253,26 @@ static void disp_pdma_dsc_init(void)
 // Callback function for PDMA transfer completion
 static void nu_pdma_memfun_cb(void *pvUserData, uint32_t u32Events)
 {
-    if ((u32Events == NU_PDMA_EVENT_TRANSFER_DONE) && (s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT].SA != (uint32_t)s_pu16BufAddr))
+    if ((u32Events == NU_PDMA_EVENT_TRANSFER_DONE))
     {
-        // Switch new VRAM buffer address.
-        int i;
-
-        for (i = 0; i < s_au32VTiming[evVStageVACT]; i++)
+        if (s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT].SA != (uint32_t)s_pu16BufAddr)
         {
-            /* Update every lines. */
-            s_sDscLCD.m_dscV[DEF_VACT_INDEX + i].m_dscH[evHStageHACT].SA = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
-        }
-    }
-    else
-    {
-    }
+            // Switch new VRAM buffer address.
+            int i;
 
-    if (s_DispBlankCb)
-        s_DispBlankCb((void *)s_pu16BufAddr);
+            for (i = 0; i < s_au32VTiming[evVStageVACT]; i++)
+            {
+                /* Update every lines. */
+                s_sDscLCD.m_dscV[DEF_VACT_INDEX + i].m_dscH[evHStageHACT].SA = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
+            }
+        }
+        else
+        {
+        }
+
+        if (s_DispBlankCb)
+            s_DispBlankCb((void *)s_pu16BufAddr);
+    }
 }
 
 // Function to initialize the PDMA module
@@ -259,7 +325,7 @@ static int disp_sync_pdma_init(void)
     struct nu_pdma_chn_cb sChnCB;
 
     /* Set the VRAM address by default. */
-	  s_pu16BufAddr = (uint16_t*)g_au8FrameBuf;
+    s_pu16BufAddr = (uint16_t *)g_au8FrameBuf;
 
     pdma_init();
 
@@ -313,9 +379,9 @@ void disp_set_vrambufaddr(void *pvBufAddr)
 }
 
 // Function to get the VRAM buffer address
-void* disp_get_vrambufaddr(void)
+void *disp_get_vrambufaddr(void)
 {
-    return (void*)s_pu16BufAddr;
+    return (void *)s_pu16BufAddr;
 }
 
 // Function to set the blank callback function

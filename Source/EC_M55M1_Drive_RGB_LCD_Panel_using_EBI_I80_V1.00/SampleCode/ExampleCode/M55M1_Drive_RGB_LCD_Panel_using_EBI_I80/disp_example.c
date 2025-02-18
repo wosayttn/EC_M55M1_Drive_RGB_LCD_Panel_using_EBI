@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * @copyright (C) 2025 Nuvoton Technology Corp. All rights reserved.
  *****************************************************************************/
- 
+
 #include "NuMicro.h"
 #include "disp.h"
 #include "string.h"
@@ -48,7 +48,7 @@ void disp_example_blankcb(void *p)
     static uint32_t u32Counter = 0;
 
     /* Toggle different image showing after getting 2 event for avoid visual persistence ghosting. */
-    #define DEF_TOGGLE_COND    (u32Counter & 0x10u)
+#define DEF_TOGGLE_COND    (u32Counter & 0x10u)
 
     /* Toggle between image1 and image2 display based on u32Counter's value. */
     if (DEF_TOGGLE_COND)
