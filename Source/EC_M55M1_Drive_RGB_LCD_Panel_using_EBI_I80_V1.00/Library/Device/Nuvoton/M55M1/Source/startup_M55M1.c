@@ -141,9 +141,9 @@ void SC0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void SC1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void SC2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 #if defined (__ARM_FEATURE_CMSE) &&  (__ARM_FEATURE_CMSE == 3U)
-void SCU_IRQHandler(void);
+    void SCU_IRQHandler(void);
 #else
-void SCU_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+    void SCU_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 #endif
 void SDH0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void SDH1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
@@ -419,7 +419,7 @@ const VECTOR_TABLE_Type DTCM_VECTOR_TABLE[] NVT_DTCM_VTOR =
 /* If some peripherals (e.g. Hyper RAM) must be initialized before startup routine
  *   user can implement its own Reset_Handler_PreInit to do early initialization.
  *
- * All code in Reset_Handler_PreInit must have the same load address and execution address; 
+ * All code in Reset_Handler_PreInit must have the same load address and execution address;
  * otherwise, users need to provide their own implementation of Reset_Handler_PreInit.
  */
 __WEAK void Reset_Handler_PreInit(void)

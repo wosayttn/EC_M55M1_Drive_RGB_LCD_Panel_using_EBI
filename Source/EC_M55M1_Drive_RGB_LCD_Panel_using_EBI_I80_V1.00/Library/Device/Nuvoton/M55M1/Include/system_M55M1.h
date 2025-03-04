@@ -64,22 +64,22 @@ extern "C" {
 #define NVT_DTCM_VTOR                           __attribute__((section("DTCM.VTOR")))                   /*!< Placed vector table in DTCM region             */
 
 #if defined (__GNUC__) && !defined(__ARMCC_VERSION)
-    #if (NVT_DCACHE_ON == 1)
-        /* If D-Cache is enabled, placed NVT_NONCACHEABLE in predefined non-cacheable section. */
-        #define NVT_NONCACHEABLE                __attribute__((section(".NonCacheable.ZeroInit")))      /*!< Placed declaration data in NonCacheable region */
-    #else   // (NVT_DCACHE_ON == 0)
-        /* If D-Cache is disabled, placed NVT_NONCACHEABLE in bss section. */
-        #define NVT_NONCACHEABLE                __attribute__((section(".bss.NonCacheable.ZeroInit")))  /*!< Placed declaration data in bss region          */
-    #endif
+#if (NVT_DCACHE_ON == 1)
+/* If D-Cache is enabled, placed NVT_NONCACHEABLE in predefined non-cacheable section. */
+#define NVT_NONCACHEABLE                __attribute__((section(".NonCacheable.ZeroInit")))      /*!< Placed declaration data in NonCacheable region */
+#else   // (NVT_DCACHE_ON == 0)
+/* If D-Cache is disabled, placed NVT_NONCACHEABLE in bss section. */
+#define NVT_NONCACHEABLE                __attribute__((section(".bss.NonCacheable.ZeroInit")))  /*!< Placed declaration data in bss region          */
+#endif
 
-    #define NVT_DTCM                            __attribute__((section(".DTCM.ZeroInit")))              /*!< Placed declaration data in DTCM region         */
-    #define NVT_NOINIT                          __attribute__((section(".noinit")))                     /*!< Placed variables in the UNINIT region          */
+#define NVT_DTCM                            __attribute__((section(".DTCM.ZeroInit")))              /*!< Placed declaration data in DTCM region         */
+#define NVT_NOINIT                          __attribute__((section(".noinit")))                     /*!< Placed variables in the UNINIT region          */
 #else
-    /* https://developer.arm.com/documentation/ka003046 */
-    /* Arm Compiler 6 only creates ZI sections, if the section name starts with ".bss". */
-    #define NVT_NONCACHEABLE                    __attribute__((section(".bss.NonCacheable.ZeroInit")))  /*!< Placed declaration data in NonCacheable region */
-    #define NVT_DTCM                            __attribute__((section(".bss.DTCM.ZeroInit")))          /*!< Placed declaration data in DTCM region         */
-    #define NVT_NOINIT                          __attribute__((section(".bss.NoInit")))                 /*!< Placed variables in the UNINIT region          */
+/* https://developer.arm.com/documentation/ka003046 */
+/* Arm Compiler 6 only creates ZI sections, if the section name starts with ".bss". */
+#define NVT_NONCACHEABLE                    __attribute__((section(".bss.NonCacheable.ZeroInit")))  /*!< Placed declaration data in NonCacheable region */
+#define NVT_DTCM                            __attribute__((section(".bss.DTCM.ZeroInit")))          /*!< Placed declaration data in DTCM region         */
+#define NVT_NOINIT                          __attribute__((section(".bss.NoInit")))                 /*!< Placed variables in the UNINIT region          */
 #endif
 
 #define __PC()                                                \

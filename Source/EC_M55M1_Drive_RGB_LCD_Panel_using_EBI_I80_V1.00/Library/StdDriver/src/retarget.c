@@ -529,8 +529,10 @@ __WEAK uint32_t ProcessHardFault(uint32_t *pu32StackFrame)
     // If CHECK_SCU_VIOLATION is enabled, the code continues execution to check the SCU violation status.
     return 0;
 #else
+
     // Halt here
     while (1);
+
 #endif
 }
 

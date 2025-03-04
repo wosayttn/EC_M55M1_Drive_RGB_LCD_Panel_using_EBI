@@ -182,13 +182,13 @@ int32_t PMC_SetSRAMPowerMode(uint32_t u32SRAMSel, uint32_t u32PowerMode)
   */
 int32_t PMC_SetCCAP_SRAMPowerMode(uint32_t u32PowerMode)
 {
-	if (PMC_Wait_BusyFlag(PMC_CCAPRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_CCAPRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	PMC->CCAPRPC = (PMC->CCAPRPC & (~PMC_CCAPRPC_CCAP0SRPMS_Msk)) | (u32PowerMode << PMC_CCAPRPC_CCAP0SRPMS_Pos);
+    PMC->CCAPRPC = (PMC->CCAPRPC & (~PMC_CCAPRPC_CCAP0SRPMS_Msk)) | (u32PowerMode << PMC_CCAPRPC_CCAP0SRPMS_Pos);
 
-	if (PMC_Wait_BusyFlag(PMC_CCAPRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_CCAPRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	return PMC_OK;
+    return PMC_OK;
 }
 
 /**
@@ -204,13 +204,13 @@ int32_t PMC_SetCCAP_SRAMPowerMode(uint32_t u32PowerMode)
   */
 int32_t PMC_SetDMIC_SRAMPowerMode(uint32_t u32PowerMode)
 {
-	if (PMC_Wait_BusyFlag(PMC_DMICRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_DMICRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	PMC->DMICRPC = (PMC->DMICRPC & (~PMC_DMICRPC_DMIC0SRPMS_Msk)) | (u32PowerMode << PMC_DMICRPC_DMIC0SRPMS_Pos);
+    PMC->DMICRPC = (PMC->DMICRPC & (~PMC_DMICRPC_DMIC0SRPMS_Msk)) | (u32PowerMode << PMC_DMICRPC_DMIC0SRPMS_Pos);
 
-	if (PMC_Wait_BusyFlag(PMC_DMICRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_DMICRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	return PMC_OK;
+    return PMC_OK;
 }
 
 /**
@@ -226,13 +226,13 @@ int32_t PMC_SetDMIC_SRAMPowerMode(uint32_t u32PowerMode)
   */
 int32_t PMC_SetKS_SRAMPowerMode(uint32_t u32PowerMode)
 {
-	if (PMC_Wait_BusyFlag(PMC_KSRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_KSRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	PMC->KSRPC = (PMC->KSRPC & (~PMC_KSRPC_KSSRPMS_Msk)) | (u32PowerMode << PMC_KSRPC_KSSRPMS_Pos);
+    PMC->KSRPC = (PMC->KSRPC & (~PMC_KSRPC_KSSRPMS_Msk)) | (u32PowerMode << PMC_KSRPC_KSSRPMS_Pos);
 
-	if (PMC_Wait_BusyFlag(PMC_KSRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
+    if (PMC_Wait_BusyFlag(PMC_KSRPC_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;
 
-	return PMC_OK;
+    return PMC_OK;
 }
 
 /**
@@ -327,10 +327,13 @@ int32_t PMC_SetPowerDownMode(uint32_t u32PowerDownMode, uint32_t u32PowerLevel)
             break;
 
         case PMC_NPD1:
-			/* Workaround */
-			if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
-			outp32(SYS_BASE + 0xF4C, inp32(SYS_BASE + 0xF4C) | BIT14);
-			if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
+
+            /* Workaround */
+            if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
+
+            outp32(SYS_BASE + 0xF4C, inp32(SYS_BASE + 0xF4C) | BIT14);
+
+            if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
 
             if (PMC_SetPowerLevel(u32PowerLevel) != 0) return PMC_ERR_TIMEOUT;
 
@@ -341,10 +344,13 @@ int32_t PMC_SetPowerDownMode(uint32_t u32PowerDownMode, uint32_t u32PowerLevel)
             break;
 
         case PMC_NPD3:
-			/* Workaround */
-			if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
-			outp32(SYS_BASE + 0xF4C, inp32(SYS_BASE + 0xF4C) | BIT14);
-			if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
+
+            /* Workaround */
+            if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
+
+            outp32(SYS_BASE + 0xF4C, inp32(SYS_BASE + 0xF4C) | BIT14);
+
+            if (PMC_Wait_BusyFlag(SYS_BASE + 0xF4C) != 0) return PMC_ERR_TIMEOUT;
 
             if (PMC_SetPowerLevel(u32PowerLevel) != 0) return PMC_ERR_TIMEOUT;
 
@@ -368,9 +374,9 @@ int32_t PMC_SetPowerDownMode(uint32_t u32PowerDownMode, uint32_t u32PowerLevel)
         case PMC_DPD:
             PMC->PWRCTL |= (PMC_PWRCTL_D0PGEN_Msk | PMC_PWRCTL_D1PGEN_Msk | PMC_PWRCTL_D2PGEN_Msk | PMC_PWRCTL_D3PGEN_Msk | PMC_PWRCTL_FWEN_Msk);
             break;
-		
-		default:
-			break;
+
+        default:
+            break;
     }
 
     if (PMC_Wait_BusyFlag(PMC_PWRCTL_BUSY_FLAG) != 0) return PMC_ERR_TIMEOUT;

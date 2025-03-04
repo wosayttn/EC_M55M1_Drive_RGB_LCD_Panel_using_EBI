@@ -1020,7 +1020,7 @@ typedef struct
         __IO uint8_t  CEPDAT_BYTE;
 
     };                                   /*!< [0x0028] Control-Endpoint Data Buffer                                     */
-    
+
     __IO uint32_t CEPCTL;                /*!< [0x002c] Control-Endpoint Control Register                                */
     __IO uint32_t CEPINTEN;              /*!< [0x0030] Control-Endpoint Interrupt Enable                                */
     __IO uint32_t CEPINTSTS;             /*!< [0x0034] Control-Endpoint Interrupt Status                                */

@@ -405,7 +405,7 @@ uint32_t CLK_SetCoreClock(uint32_t u32Aclk)
     CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
     CLK->SCLKSEL = (CLK->SCLKSEL & (~CLK_SCLKSEL_SCLKSEL_Msk)) | CLK_SCLKSEL_SCLKSEL_HIRC;
 
-	u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
 
     while (!(CLK->STATUS & CLK_STATUS_SCLKSWF_Msk))
     {
@@ -467,7 +467,7 @@ void CLK_SetSCLK(uint32_t u32ClkSrc)
     CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
     CLK->SCLKSEL = (CLK->SCLKSEL & (~CLK_SCLKSEL_SCLKSEL_Msk)) | CLK_SCLKSEL_SCLKSEL_HIRC;
 
-	u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
 
     while (!(CLK->STATUS & CLK_STATUS_SCLKSWF_Msk))
     {
@@ -527,11 +527,11 @@ void CLK_SetSCLK(uint32_t u32ClkSrc)
 
     /* Set Flash Access Cycle to 10 for safe */
     FMC->CYCCTL = (FMC->CYCCTL & (~FMC_CYCCTL_CYCLE_Msk)) | (10);
-	
+
     /* Switch to the new SCLK */
     CLK->SCLKSEL = (CLK->SCLKSEL & (~CLK_SCLKSEL_SCLKSEL_Msk)) | u32ClkSrc;
 
-	u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
+    u32TimeOutCount = SystemCoreClock; /* 1 second time-out */
 
     while (!(CLK->STATUS & CLK_STATUS_SCLKSWF_Msk))
     {
@@ -863,23 +863,23 @@ void CLK_SetModuleClock(uint64_t u64ModuleIdx, uint32_t u32ClkSrc, uint32_t u32C
 {
     uint32_t u32Sel = 0UL, u32Div = 0UL;
 
-	/* Configure clock source divider */
-	if (MODULE_CLKDIV_Msk(u64ModuleIdx) != MODULE_NoMsk)
-	{
-		/* Get clock divider control register address */
-		u32Div = (uint32_t)MODULE_CLKDIV_BASE + ((uint32_t)MODULE_CLKDIV(u64ModuleIdx) << 2);
-		/* Apply new divider */
-		M32(u32Div) = (M32(u32Div) & (~((uint32_t)MODULE_CLKDIV_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKDIV_Pos(u64ModuleIdx)))) | u32ClkDiv;
-	}
+    /* Configure clock source divider */
+    if (MODULE_CLKDIV_Msk(u64ModuleIdx) != MODULE_NoMsk)
+    {
+        /* Get clock divider control register address */
+        u32Div = (uint32_t)MODULE_CLKDIV_BASE + ((uint32_t)MODULE_CLKDIV(u64ModuleIdx) << 2);
+        /* Apply new divider */
+        M32(u32Div) = (M32(u32Div) & (~((uint32_t)MODULE_CLKDIV_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKDIV_Pos(u64ModuleIdx)))) | u32ClkDiv;
+    }
 
-	/* Configure clock source */
-	if (MODULE_CLKSEL_Msk(u64ModuleIdx) != MODULE_NoMsk)
-	{
-		/* Get clock select control register address */
-		u32Sel = (uint32_t)MODULE_CLKSEL_BASE + ((uint32_t)MODULE_CLKSEL(u64ModuleIdx) << 2);
-		/* Set new clock selection setting */
-		M32(u32Sel) = (M32(u32Sel) & (~((uint32_t)MODULE_CLKSEL_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx)))) | u32ClkSrc;
-	}
+    /* Configure clock source */
+    if (MODULE_CLKSEL_Msk(u64ModuleIdx) != MODULE_NoMsk)
+    {
+        /* Get clock select control register address */
+        u32Sel = (uint32_t)MODULE_CLKSEL_BASE + ((uint32_t)MODULE_CLKSEL(u64ModuleIdx) << 2);
+        /* Set new clock selection setting */
+        M32(u32Sel) = (M32(u32Sel) & (~((uint32_t)MODULE_CLKSEL_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx)))) | u32ClkSrc;
+    }
 }
 
 /**
@@ -1732,10 +1732,10 @@ uint32_t CLK_SystemClockUpdate(void)
         SystemClock = gau32ClkSrcTbl[u32ClkSrc];
     }
 
-	/* Get SCLK divider setting */
-	u32SclkDiv = ((CLK->SCLKDIV & CLK_SCLKDIV_SCLKDIV_Msk) >> CLK_SCLKDIV_SCLKDIV_Pos) + 1;
+    /* Get SCLK divider setting */
+    u32SclkDiv = ((CLK->SCLKDIV & CLK_SCLKDIV_SCLKDIV_Msk) >> CLK_SCLKDIV_SCLKDIV_Pos) + 1;
 
-	SystemClock = SystemClock / u32SclkDiv;
+    SystemClock = SystemClock / u32SclkDiv;
 
     return SystemClock;
 }
@@ -1802,11 +1802,11 @@ uint32_t CLK_GetModuleClockSource(uint64_t u64ModuleIdx)
 {
     uint32_t u32TmpVal = 0UL, u32TmpAddr = 0UL;
 
-	/* Get clock select control register address */
-	u32TmpAddr = (uint32_t)MODULE_CLKSEL_BASE + (uint32_t)(MODULE_CLKSEL(u64ModuleIdx) << 2);
+    /* Get clock select control register address */
+    u32TmpAddr = (uint32_t)MODULE_CLKSEL_BASE + (uint32_t)(MODULE_CLKSEL(u64ModuleIdx) << 2);
 
-	/* Get clock source selection setting */
-	u32TmpVal = (inpw((uint32_t *)u32TmpAddr) & (uint32_t)(MODULE_CLKSEL_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx))) >> (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx);
+    /* Get clock source selection setting */
+    u32TmpVal = (inpw((uint32_t *)u32TmpAddr) & (uint32_t)(MODULE_CLKSEL_Msk(u64ModuleIdx) << (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx))) >> (uint32_t)MODULE_CLKSEL_Pos(u64ModuleIdx);
 
     return u32TmpVal;
 }

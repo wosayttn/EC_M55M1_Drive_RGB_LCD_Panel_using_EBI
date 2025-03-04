@@ -28,7 +28,7 @@
             ".balign 1\n" \
             "incbin_" STR(name) "_end:\n" \
             ".byte 0\n" \
-    ); \
+           ); \
     extern const __attribute__((aligned(32))) void* incbin_ ## name ## _start; \
     extern const void* incbin_ ## name ## _end; \
 

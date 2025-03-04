@@ -99,6 +99,7 @@ static E_VSTAGE get_current_vstage(int i32LineIdx)
     for (i = 0; i < evVStageCNT; i++)
     {
         sum += s_au32VTiming[i];
+
         if (i32LineIdx < sum)
         {
             return i;
@@ -173,6 +174,7 @@ static void disp_gdma_dsc_init(void)
         u16AddrDstInc = 0;
 
         disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
+
         if (i == (CONFIG_TIMING_VACT - 1))
         {
             dma350_cmdlink_enable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
@@ -183,12 +185,14 @@ static void disp_gdma_dsc_init(void)
             dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
             dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
         }
+
         dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
         next++;
 
     } // for(i = 0; i < CONFIG_TIMING_VACT; i++)
 
 #else
+
     for (i = 0; i < DEF_TOTAL_VLINES; i++)
     {
         E_HSTAGE evH;
@@ -205,46 +209,48 @@ static void disp_gdma_dsc_init(void)
 
             switch (evV)
             {
-            case evVStageVSYNC:
-                /* Set each H stage in a VSYNC line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE + CONFIG_DISP_HSYNC_ACTIVE) :
-                             (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE);
-                break;
+                case evVStageVSYNC:
+                    /* Set each H stage in a VSYNC line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE + CONFIG_DISP_HSYNC_ACTIVE) :
+                                 (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE);
+                    break;
 
-            case evVStageVBP:
-                /* Set each H stage in a VBP line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
-                break;
+                case evVStageVBP:
+                    /* Set each H stage in a VBP line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
+                    break;
 
-            case evVStageVACT:
-                /* Set each H stage in a VACT line. */
-                /* evHStageHACT stage: Set source memory address is incremented and destination memory address is fixed. */
-                /* Others stage: Set source memory address is fixed and destination memory address is fixed. */
-                if (evH == evHStageHACT)
-                {
-                    u32AddrSrc = (uint32_t)pu16Buf;
-                    pu16Buf = pu16Buf + CONFIG_TIMING_HACT;
-                }
+                case evVStageVACT:
 
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) :
-                             (evH == evHStageHACT) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE) :
-                             (CONFIG_DISP_EBI_ADDR);
-                u16AddrSrcInc = (evH == evHStageHACT) ? 1 : 0;
-                break;
+                    /* Set each H stage in a VACT line. */
+                    /* evHStageHACT stage: Set source memory address is incremented and destination memory address is fixed. */
+                    /* Others stage: Set source memory address is fixed and destination memory address is fixed. */
+                    if (evH == evHStageHACT)
+                    {
+                        u32AddrSrc = (uint32_t)pu16Buf;
+                        pu16Buf = pu16Buf + CONFIG_TIMING_HACT;
+                    }
 
-            case evVStageVFP:
-                /* Set each H stage in a VFP line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
-                break;
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) :
+                                 (evH == evHStageHACT) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE) :
+                                 (CONFIG_DISP_EBI_ADDR);
+                    u16AddrSrcInc = (evH == evHStageHACT) ? 1 : 0;
+                    break;
 
-            default:
-                break;
+                case evVStageVFP:
+                    /* Set each H stage in a VFP line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
+                    break;
+
+                default:
+                    break;
             }
 
             disp_cmdlink_config(&cmdlink_cfg, u32AddrSrc, u32AddrDst, u32XferCount, u16AddrSrcInc, u16AddrDstInc);
+
             if (next == s_end)
             {
                 dma350_cmdlink_enable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
@@ -255,6 +261,7 @@ static void disp_gdma_dsc_init(void)
                 dma350_cmdlink_disable_intr(&cmdlink_cfg, DMA350_CH_INTREN_DONE);
                 dma350_cmdlink_set_linkaddr32(&cmdlink_cfg, (uint32_t)(next + 1));
             }
+
             dma350_cmdlink_generate(&cmdlink_cfg, (uint32_t *)next, (uint32_t *)((uint32_t)next + sizeof(S_CMDBUF) - sizeof(uint32_t)));
 
             next++;
@@ -262,6 +269,7 @@ static void disp_gdma_dsc_init(void)
         } // for (evH = 0; evH < evHStageCNT; evH++)
 
     } // for (i = 0; i < DEF_TOTAL_VLINES; i++)
+
 #endif
 
 }
@@ -311,6 +319,7 @@ static void disp_gdma_dsc_dump(void)
     struct dma350_cmdlink_gencfg_t *cmdlink_cfg;
 
     printf("s_head: %08X, s_end: %08X\n", (uint32_t)s_head, (uint32_t)s_end);
+
     do
     {
         int n = 0;
@@ -327,39 +336,39 @@ static void disp_gdma_dsc_dump(void)
 
             switch (1 << i)
             {
-            case DMA350_CMDLINK_LINKADDR_SET:     //(0x1UL << 30)
-                tmp_next = (S_CMDBUF *)((uint32_t)pu32Cfg[n] & DMA_CH_LINKADDR_LINKADDR_Msk);
-                break;
+                case DMA350_CMDLINK_LINKADDR_SET:     //(0x1UL << 30)
+                    tmp_next = (S_CMDBUF *)((uint32_t)pu32Cfg[n] & DMA_CH_LINKADDR_LINKADDR_Msk);
+                    break;
 
-            case DMA350_CMDLINK_REGCLEAR_SET:     //(0x1UL)
-            case DMA350_CMDLINK_INTREN_SET:       //(0x1UL << 2)
-            case DMA350_CMDLINK_CTRL_SET:         //(0x1UL << 3)
-            case DMA350_CMDLINK_SRC_ADDR_SET:     //(0x1UL << 4)
-            case DMA350_CMDLINK_SRC_ADDRHI_SET:   //(0x1UL << 5)
-            case DMA350_CMDLINK_DES_ADDR_SET:     //(0x1UL << 6)
-            case DMA350_CMDLINK_DES_ADDRHI_SET:   //(0x1UL << 7)
-            case DMA350_CMDLINK_XSIZE_SET:        //(0x1UL << 8)
-            case DMA350_CMDLINK_XSIZEHI_SET:      //(0x1UL << 9)
-            case DMA350_CMDLINK_SRCTRANSCFG_SET:  //(0x1UL << 10)
-            case DMA350_CMDLINK_DESTRANSCFG_SET:  //(0x1UL << 11)
-            case DMA350_CMDLINK_XADDRINC_SET:     //(0x1UL << 12)
-            case DMA350_CMDLINK_YADDRSTRIDE_SET:  //(0x1UL << 13)
-            case DMA350_CMDLINK_FILLVAL_SET:      //(0x1UL << 14)
-            case DMA350_CMDLINK_YSIZE_SET:        //(0x1UL << 15)
-            case DMA350_CMDLINK_TMPLTCFG_SET:     //(0x1UL << 16)
-            case DMA350_CMDLINK_SRCTMPLT_SET:     //(0x1UL << 17)
-            case DMA350_CMDLINK_DESTMPLT_SET:     //(0x1UL << 18)
-            case DMA350_CMDLINK_SRCTRIGINCFG_SET: //(0x1UL << 19)
-            case DMA350_CMDLINK_DESTRIGINCFG_SET: //(0x1UL << 20)
-            case DMA350_CMDLINK_TRIGOUTCFG_SET:   //(0x1UL << 21)
-            case DMA350_CMDLINK_GPOEN0_SET:       //(0x1UL << 22)
-            case DMA350_CMDLINK_GPOVAL0_SET:      //(0x1UL << 24)
-            case DMA350_CMDLINK_STREAMINTCFG_SET: //(0x1UL << 26)
-            case DMA350_CMDLINK_LINKATTR_SET:     //(0x1UL << 28)
-            case DMA350_CMDLINK_AUTOCFG_SET:      //(0x1UL << 29)
-            case DMA350_CMDLINK_LINKADDRHI_SET:   //(0x1UL << 31)
-            default:
-                break;
+                case DMA350_CMDLINK_REGCLEAR_SET:     //(0x1UL)
+                case DMA350_CMDLINK_INTREN_SET:       //(0x1UL << 2)
+                case DMA350_CMDLINK_CTRL_SET:         //(0x1UL << 3)
+                case DMA350_CMDLINK_SRC_ADDR_SET:     //(0x1UL << 4)
+                case DMA350_CMDLINK_SRC_ADDRHI_SET:   //(0x1UL << 5)
+                case DMA350_CMDLINK_DES_ADDR_SET:     //(0x1UL << 6)
+                case DMA350_CMDLINK_DES_ADDRHI_SET:   //(0x1UL << 7)
+                case DMA350_CMDLINK_XSIZE_SET:        //(0x1UL << 8)
+                case DMA350_CMDLINK_XSIZEHI_SET:      //(0x1UL << 9)
+                case DMA350_CMDLINK_SRCTRANSCFG_SET:  //(0x1UL << 10)
+                case DMA350_CMDLINK_DESTRANSCFG_SET:  //(0x1UL << 11)
+                case DMA350_CMDLINK_XADDRINC_SET:     //(0x1UL << 12)
+                case DMA350_CMDLINK_YADDRSTRIDE_SET:  //(0x1UL << 13)
+                case DMA350_CMDLINK_FILLVAL_SET:      //(0x1UL << 14)
+                case DMA350_CMDLINK_YSIZE_SET:        //(0x1UL << 15)
+                case DMA350_CMDLINK_TMPLTCFG_SET:     //(0x1UL << 16)
+                case DMA350_CMDLINK_SRCTMPLT_SET:     //(0x1UL << 17)
+                case DMA350_CMDLINK_DESTMPLT_SET:     //(0x1UL << 18)
+                case DMA350_CMDLINK_SRCTRIGINCFG_SET: //(0x1UL << 19)
+                case DMA350_CMDLINK_DESTRIGINCFG_SET: //(0x1UL << 20)
+                case DMA350_CMDLINK_TRIGOUTCFG_SET:   //(0x1UL << 21)
+                case DMA350_CMDLINK_GPOEN0_SET:       //(0x1UL << 22)
+                case DMA350_CMDLINK_GPOVAL0_SET:      //(0x1UL << 24)
+                case DMA350_CMDLINK_STREAMINTCFG_SET: //(0x1UL << 26)
+                case DMA350_CMDLINK_LINKATTR_SET:     //(0x1UL << 28)
+                case DMA350_CMDLINK_AUTOCFG_SET:      //(0x1UL << 29)
+                case DMA350_CMDLINK_LINKADDRHI_SET:   //(0x1UL << 31)
+                default:
+                    break;
             }
 
             n++;
@@ -368,8 +377,7 @@ static void disp_gdma_dsc_dump(void)
 
         if (tmp_next)
             next = tmp_next;
-    }
-    while (s_head != next);
+    } while (s_head != next);
 
 }
 
@@ -386,10 +394,11 @@ static uint32_t gdma_dsc_find_srcaddr_index(S_CMDBUF *psCmdBuf)
     {
         switch (1 << i)
         {
-        case DMA350_CMDLINK_SRC_ADDR_SET:     //(0x1UL << 4)
-            return n;
-        default:
-            break;
+            case DMA350_CMDLINK_SRC_ADDR_SET:     //(0x1UL << 4)
+                return n;
+
+            default:
+                break;
         }
 
         n++;
@@ -410,6 +419,7 @@ NVT_ITCM void GDMACH1_IRQHandler(void)
 
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
         uint32_t u32SrcBufAddrIdx = gdma_dsc_find_srcaddr_index(&s_sDscLCD.m_dscV[0].m_dscH[evHStageHACT]) + 1;
+
         if ((s_sDscLCD.m_dscV[0].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] != (uint32_t)s_pu16BufAddr))
         {
             int i;
@@ -421,8 +431,10 @@ NVT_ITCM void GDMACH1_IRQHandler(void)
                 s_sDscLCD.m_dscV[i].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
             }
         }
+
 #else
         uint32_t u32SrcBufAddrIdx = gdma_dsc_find_srcaddr_index(&s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT]) + 1;
+
         if ((s_sDscLCD.m_dscV[DEF_VACT_INDEX].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] != (uint32_t)s_pu16BufAddr))
         {
             int i;
@@ -434,7 +446,9 @@ NVT_ITCM void GDMACH1_IRQHandler(void)
                 s_sDscLCD.m_dscV[DEF_VACT_INDEX + i].m_dscH[evHStageHACT].m_cmdbuf[u32SrcBufAddrIdx] = (uint32_t)&s_pu16BufAddr[i * CONFIG_TIMING_HACT];
             }
         }
+
 #endif
+
         if (s_DispBlankCb)
             s_DispBlankCb((void *)s_pu16BufAddr);
     }

@@ -14,13 +14,11 @@
 
 #define CONFIG_DISP_EBI               EBI_BANK0   /*!< SET EBI Bank */
 
-//#define CONFIG_LCD_PANEL_USE_DE_ONLY              /*!< LCD supports DE-only mode, without HSync and VSync. */
+#define CONFIG_LCD_PANEL_USE_DE_ONLY              /*!< LCD supports DE-only mode, without HSync and VSync. */
 #define CONFIG_DISP_DE_ACTIVE_LOW             0   /*!< Disable DE active low */
-#define CONFIG_DISP_DE_BITIDX                 8   /*!< Implies SET_EBI_ADR7_PH0 */
-#define CONFIG_DISP_DE_ACTIVE_LOW             0   /*!< Disable DE active low */
-#define CONFIG_DISP_DE_BITIDX                 8   /*!< Implies SET_EBI_ADR7_PH0 */
 #define CONFIG_DISP_VPW_ACTIVE_LOW            1   /*!< Enable VPW active low */
 #define CONFIG_DISP_HPW_ACTIVE_LOW            1   /*!< Enable HPW active low */
+#define CONFIG_DISP_DE_BITIDX                 8   /*!< Implies SET_EBI_ADR7_PH0 */
 #define CONFIG_DISP_VSYNC_BITIDX              1   /*!< Implies SET_EBI_ADR0_PH7 */
 #define CONFIG_DISP_HSYNC_BITIDX              2   /*!< Implies SET_EBI_ADR1_PH6 */
 
@@ -44,9 +42,9 @@
 #define CONFIG_DISP_VSYNC_ACTIVE             (CONFIG_DISP_VPW_ACTIVE_LOW?(-1*CONFIG_DISP_VSYNC_BITMASK):CONFIG_DISP_VSYNC_BITMASK)   /*!< Active state for VSYNC */
 #define CONFIG_DISP_HSYNC_ACTIVE             (CONFIG_DISP_HPW_ACTIVE_LOW?(-1*CONFIG_DISP_HSYNC_BITMASK):CONFIG_DISP_HSYNC_BITMASK)   /*!< Active state for HSYNC */
 #define CONFIG_DISP_EBI_ADDR                 (EBI_BANK0_BASE_ADDR+(CONFIG_DISP_EBI*EBI_MAX_SIZE) + \
-                                             (CONFIG_DISP_VPW_ACTIVE_LOW<<CONFIG_DISP_VSYNC_BITIDX) + \
-                                             (CONFIG_DISP_HPW_ACTIVE_LOW<<CONFIG_DISP_HSYNC_BITIDX) + \
-                                             (CONFIG_DISP_DE_ACTIVE_LOW<<CONFIG_DISP_DE_BITIDX))   /*!< EBI address configuration */
+                                              (CONFIG_DISP_VPW_ACTIVE_LOW<<CONFIG_DISP_VSYNC_BITIDX) + \
+                                              (CONFIG_DISP_HPW_ACTIVE_LOW<<CONFIG_DISP_HSYNC_BITIDX) + \
+                                              (CONFIG_DISP_DE_ACTIVE_LOW<<CONFIG_DISP_DE_BITIDX))   /*!< EBI address configuration */
 
 #define CONFIG_VRAM_BUF_SIZE                 (CONFIG_TIMING_HACT * CONFIG_TIMING_VACT * sizeof(uint16_t))   /*!< Size of VRAM buffer */
 #define CONFIG_VRAM_BUF_NUM                  2   /*!< VRAM buffer number */

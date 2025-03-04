@@ -85,8 +85,10 @@ __STATIC_INLINE int nu_clo(uint32_t x)
 __STATIC_INLINE int nu_ctz(uint32_t x)
 {
     int c = 32;
+
     if (x)
         c = __CLZ(x & -x);
+
     return x ? 31 - c : c;
 }
 

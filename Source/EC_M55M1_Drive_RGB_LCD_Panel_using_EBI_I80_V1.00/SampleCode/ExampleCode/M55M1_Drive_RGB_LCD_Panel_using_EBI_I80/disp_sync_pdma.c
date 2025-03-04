@@ -101,8 +101,7 @@ static void disp_pdma_dsc_dump(void)
 
         next = (nu_pdma_desc_t)next->NEXT;
 
-    }
-    while (s_head != next);
+    } while (s_head != next);
 }
 
 // Function to get the current V stage based on the line index
@@ -114,6 +113,7 @@ static E_VSTAGE get_current_vstage(int i32LineIdx)
     for (i = 0; i < evVStageCNT; i++)
     {
         sum += s_au32VTiming[i];
+
         if (i32LineIdx < sum)
         {
             return i;
@@ -189,43 +189,44 @@ static void disp_pdma_dsc_init(void)
 
             switch (evV)
             {
-            case evVStageVSYNC:
-                /* Set each H stage in a VSYNC line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE + CONFIG_DISP_HSYNC_ACTIVE) :
-                             (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE);
-                break;
+                case evVStageVSYNC:
+                    /* Set each H stage in a VSYNC line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE + CONFIG_DISP_HSYNC_ACTIVE) :
+                                 (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_VSYNC_ACTIVE);
+                    break;
 
-            case evVStageVBP:
-                /* Set each H stage in a VBP line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
-                break;
+                case evVStageVBP:
+                    /* Set each H stage in a VBP line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
+                    break;
 
-            case evVStageVACT:
-                /* Set each H stage in a VACT line. */
-                /* evHStageHACT stage: Set source memory address is incremented and destination memory address is fixed. */
-                /* Others stage: Set source memory address is fixed and destination memory address is fixed. */
-                if (evH == evHStageHACT)
-                {
-                    u32AddrSrc = (uint32_t)pu16Buf;
-                    pu16Buf = pu16Buf + CONFIG_TIMING_HACT;
-                }
+                case evVStageVACT:
 
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) :
-                             (evH == evHStageHACT) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE) :
-                             (CONFIG_DISP_EBI_ADDR);
-                evMemCtrl = (evH == evHStageHACT) ? eMemCtl_SrcInc_DstFix : eMemCtl_SrcFix_DstFix;
-                break;
+                    /* Set each H stage in a VACT line. */
+                    /* evHStageHACT stage: Set source memory address is incremented and destination memory address is fixed. */
+                    /* Others stage: Set source memory address is fixed and destination memory address is fixed. */
+                    if (evH == evHStageHACT)
+                    {
+                        u32AddrSrc = (uint32_t)pu16Buf;
+                        pu16Buf = pu16Buf + CONFIG_TIMING_HACT;
+                    }
 
-            case evVStageVFP:
-                /* Set each H stage in a VFP line. */
-                /* Set source memory address is fixed and destination memory address is fixed. */
-                u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
-                break;
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) :
+                                 (evH == evHStageHACT) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_DE_ACTIVE) :
+                                 (CONFIG_DISP_EBI_ADDR);
+                    evMemCtrl = (evH == evHStageHACT) ? eMemCtl_SrcInc_DstFix : eMemCtl_SrcFix_DstFix;
+                    break;
 
-            default:
-                break;
+                case evVStageVFP:
+                    /* Set each H stage in a VFP line. */
+                    /* Set source memory address is fixed and destination memory address is fixed. */
+                    u32AddrDst = (evH == evHStageHSYNC) ? (CONFIG_DISP_EBI_ADDR + CONFIG_DISP_HSYNC_ACTIVE) : (CONFIG_DISP_EBI_ADDR);
+                    break;
+
+                default:
+                    break;
             }
 
             nu_pdma_m2m_desc_setup(next,
@@ -241,6 +242,7 @@ static void disp_pdma_dsc_init(void)
         } // for (evH = 0; evH < evHStageCNT; evH++)
 
     } // for (i = 0; i < DEF_TOTAL_VLINES; i++)
+
 #endif
 
     /* Update NEXT of last descriptor to link head. */

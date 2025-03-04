@@ -44,11 +44,11 @@ typedef struct component_export *component_export_t;
 #define COMPONENT_EXPORT(name, initialize, finalize)                           \
     __attribute__((used)) static const struct component_export _component      \
     __attribute__((section("CompInitTab"))) =                                  \
-    {                                                                          \
-        name,                                                                  \
-        initialize,                                                            \
-        finalize                                                               \
-    }
+                                                                               {                                                                          \
+                                                                                                                                                          name,                                                                  \
+                                                                                                                                                          initialize,                                                            \
+                                                                                                                                                          finalize                                                               \
+                                                                               }
 
 #define NVT_ALIGN(size, align)        (((size) + (align) - 1) & ~((align) - 1))
 #define NVT_ALIGN_DOWN(size, align)   ((size) & ~((align) - 1))

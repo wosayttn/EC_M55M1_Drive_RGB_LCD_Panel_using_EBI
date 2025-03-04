@@ -956,7 +956,9 @@ __WEAK void SCU_IRQHandler(void)
                 printf("\nMPC violation detected. (SCU_INTSTS2: 0x%08X)\n", u32Reg);
                 printf("  INT_Info1: 0x%08X\n", psMPC->int_info1);
                 printf("  INT_Info2: 0x%08X\n", psMPC->int_info2);
+
                 while (1) ;
+
 #endif
             }
         }
@@ -977,7 +979,9 @@ __WEAK void SCU_IRQHandler(void)
                 printf("\nSlave violation detected. (SCU_INTSTS0: 0x%08X)\n", u32Reg);
                 printf("  %s access ", sc_astrMasterName[SCU->PVSRC[i]]);
                 printf("%s@0x%08X illegallly.\n", sc_astrSlaveName[i], SCU->PVA[i]);
+
                 while (1) ;
+
 #endif
             }
         }
@@ -997,7 +1001,9 @@ __WEAK void SCU_IRQHandler(void)
 #if (CHECK_SCU_VIOLATION == 1)
                 printf("\nMSC violation detected. (SCU_INTSTS1: 0x%08X)\n", u32Reg);
                 printf("  %s access 0x%08X illegally.\n", sc_astrMasterVioName[i], SCU->MVA[i]);
+
                 while (1) ;
+
 #endif
             }
         }
