@@ -1,5 +1,5 @@
 /**************************************************************************//**
- * @file     disp_config.h
+ * @file     disp.h
  * @brief    Sync-type LCD panel configuration file.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -49,6 +49,19 @@
 #define CONFIG_VRAM_BUF_SIZE                 (CONFIG_TIMING_HACT * CONFIG_TIMING_VACT * sizeof(uint16_t))   /*!< Size of VRAM buffer */
 #define CONFIG_VRAM_BUF_NUM                  2   /*!< VRAM buffer number */
 #define CONFIG_VRAM_TOTAL_ALLOCATED_SIZE     NVT_ALIGN((CONFIG_VRAM_BUF_NUM * CONFIG_VRAM_BUF_SIZE), DCACHE_LINE_SIZE) /*!< Total of VRAM buffer size */
+
+
+#if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
+    #define DEF_TOTAL_VLINES   (CONFIG_TIMING_VACT)
+    #define DEF_VACT_INDEX     (0)
+#else
+    #define DEF_TOTAL_VLINES   (CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT+CONFIG_TIMING_VFP)
+    #define DEF_VACT_INDEX     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
+#endif
+
+#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
+#define DEF_HACT_ALL     (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT)
+#define DEF_VACT_ALL     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT)
 
 typedef enum
 {

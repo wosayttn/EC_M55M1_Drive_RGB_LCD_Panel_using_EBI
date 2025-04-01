@@ -118,21 +118,35 @@ static void ebi_fini(void)
 }
 
 // Initialize board
-static int board_init(void)
+void board_init(void)
 {
+    uint32_t u32RegLocked = SYS_IsRegLocked();
+
+    /* Unlock protected registers */
+    if (u32RegLocked)
+        SYS_UnlockReg();
+
     // Enable EBI module clock and set EBI function pins
     ebi_init();
 
-    return 0;
+    /* Lock protected registers */
+    if (u32RegLocked)
+        SYS_LockReg();
 }
 
 // Deinitialize board
-static int board_fini(void)
+void board_fini(void)
 {
+    uint32_t u32RegLocked = SYS_IsRegLocked();
+
+    /* Unlock protected registers */
+    if (u32RegLocked)
+        SYS_UnlockReg();
+
     // Disable EBI module clock and reset EBI function pins
     ebi_fini();
 
-    return 0;
+    /* Lock protected registers */
+    if (u32RegLocked)
+        SYS_LockReg();
 }
-
-COMPONENT_EXPORT("BOARD_MODULE", board_init, board_fini);

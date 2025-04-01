@@ -24,13 +24,9 @@ typedef struct
 typedef struct
 {
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
-#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VACT)
     DSCT_T         m_dscDummy;
-    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
-#else
-#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT+CONFIG_TIMING_VFP)
-    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
 #endif
+    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
 } S_DSC_LCD;
 
 /*---------------------------------------------------------------------------*/
@@ -52,7 +48,6 @@ static DispBlankCb s_DispBlankCb = NULL;
 // Array of H timing values
 static const uint32_t s_au32HTiming[evHStageCNT] =
 {
-#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
     DEF_HACT_INDEX,
     CONFIG_TIMING_HACT
@@ -62,24 +57,20 @@ static const uint32_t s_au32HTiming[evHStageCNT] =
     CONFIG_TIMING_HBP,
     CONFIG_TIMING_HACT
 #endif
-#define DEF_HACT_ALL     (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT)
 };
 
 // Array of V timing values
 static const uint32_t s_au32VTiming[evVStageCNT] =
 {
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
-#define DEF_VACT_INDEX   (0)
     (CONFIG_TIMING_VFP + CONFIG_TIMING_VPW + CONFIG_TIMING_VBP),
     CONFIG_TIMING_VACT
 #else
-#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
     CONFIG_TIMING_VFP,
     CONFIG_TIMING_VPW,
     CONFIG_TIMING_VBP,
     CONFIG_TIMING_VACT
 #endif
-#define DEF_VACT_ALL     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT)
 };
 
 static int s_i32Channel = -1;
@@ -294,7 +285,7 @@ static void pdma_init(void)
     SYS_ResetModule(SYS_PDMA0RST);
     SYS_ResetModule(SYS_PDMA1RST);
 
-    /* Unlock protected registers */
+    /* Lock protected registers */
     if (u32RegLocked)
         SYS_LockReg();
 }
@@ -316,7 +307,7 @@ static void pdma_fini(void)
     CLK_DisableModuleClock(PDMA0_MODULE);
     CLK_DisableModuleClock(PDMA1_MODULE);
 
-    /* Unlock protected registers */
+    /* Lock protected registers */
     if (u32RegLocked)
         SYS_LockReg();
 }

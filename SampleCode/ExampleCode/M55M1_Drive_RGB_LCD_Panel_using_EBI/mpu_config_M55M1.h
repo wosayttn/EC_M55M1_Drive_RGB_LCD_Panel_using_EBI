@@ -11,7 +11,7 @@
 #define __MPU_CONFIG_M55M1_H__
 
 /*
- * Copy from Library\StdDriver\inc\nu_mpu_config_M55M1_template.h
+ * Copy from Library\StdDriver\inc\mpu_config_M55M1_template.h
  * Rename to mpu_config_M55M1.h
  * Add mpu_config_M55M1.h folder to include path
  */

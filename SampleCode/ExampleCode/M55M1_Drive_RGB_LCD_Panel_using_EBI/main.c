@@ -8,6 +8,7 @@
 
 #include "NuMicro.h"
 #include "component.h"
+#include "board.h"
 
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */
@@ -62,7 +63,11 @@ static void components_initialize(void)
             printf("Initialize %s\n", asCompInitTbl[i].name);
 
             // Call the initialize method for component setup
-            asCompInitTbl[i].initialize();
+            if (asCompInitTbl[i].initialize() < 0)
+            {
+                // Print message if return of initialize function is small than zero.
+                printf("Initialize %s failure.\n", asCompInitTbl[i].name);
+            }
         }
     }
 }
@@ -93,12 +98,21 @@ static void components_finalize(void)
 
             // Call the finalize method for cleanup
             asCompInitTbl[i].finalize();
+
+            if (asCompInitTbl[i].finalize() < 0)
+            {
+                // Print message if return of finalize function is small than zero.
+                printf("Initialize %s failure.\n", asCompInitTbl[i].name);
+            }
         }
     }
 }
 
 int main(void)
 {
+    // Module clocks and function pin setting initialization.
+    board_init();
+
     /* Initialize all components */
     components_initialize();
 
@@ -111,6 +125,9 @@ int main(void)
     /* This will never execute due to the infinite loop. */
     /* Just keep for orthogonal implementation. */
     components_finalize();
+
+    // Module clocks and function pin setting finalization.
+    board_fini();
 
     return 0;
 }

@@ -29,13 +29,9 @@ typedef struct
 typedef struct
 {
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
-#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VACT)
     S_CMDBUF       m_dscDummy;
-    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
-#else
-#define  DEF_TOTAL_VLINES   (CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT+CONFIG_TIMING_VFP)
-    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
 #endif
+    S_DSC_HLINE    m_dscV[DEF_TOTAL_VLINES];
 } S_DSC_LCD;
 
 /*---------------------------------------------------------------------------*/
@@ -58,9 +54,6 @@ static DispBlankCb s_DispBlankCb = NULL;
 
 static const uint32_t s_au32HTiming[evHStageCNT] =
 {
-#define DEF_HACT_INDEX   (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP)
-#define DEF_HACT_ALL     (CONFIG_TIMING_HFP+CONFIG_TIMING_HPW+CONFIG_TIMING_HBP+CONFIG_TIMING_HACT)
-
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
     DEF_HACT_INDEX,
     CONFIG_TIMING_HACT
@@ -74,9 +67,6 @@ static const uint32_t s_au32HTiming[evHStageCNT] =
 
 static const uint32_t s_au32VTiming[evVStageCNT] =
 {
-#define DEF_VACT_INDEX   (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP)
-#define DEF_VACT_ALL     (CONFIG_TIMING_VFP+CONFIG_TIMING_VPW+CONFIG_TIMING_VBP+CONFIG_TIMING_VACT)
-
 #if defined(CONFIG_LCD_PANEL_USE_DE_ONLY)
     DEF_VACT_INDEX,
     CONFIG_TIMING_VACT
@@ -502,7 +492,7 @@ static void gdma_fini(void)
     /* Disable GDMA0 clock source. */
     CLK_DisableModuleClock(GDMA0_MODULE);
 
-    /* Unlock protected registers */
+    /* Lock protected registers */
     if (u32RegLocked)
         SYS_LockReg();
 }
