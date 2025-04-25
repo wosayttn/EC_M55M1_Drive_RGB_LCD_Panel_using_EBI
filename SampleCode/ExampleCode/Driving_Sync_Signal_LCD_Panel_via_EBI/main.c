@@ -97,8 +97,6 @@ static void components_finalize(void)
             printf("Finalize %s\n", asCompInitTbl[i].name);
 
             // Call the finalize method for cleanup
-            asCompInitTbl[i].finalize();
-
             if (asCompInitTbl[i].finalize() < 0)
             {
                 // Print message if return of finalize function is small than zero.
